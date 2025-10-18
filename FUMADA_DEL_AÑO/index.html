@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>🥊 FUMADA DEL AÑO 🥊</title>
+  <script src="https://unpkg.com/vue@3"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;700&display=swap');
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: radial-gradient(circle at top, #0a0a0a, #000);
+      color: #fff;
+      text-align: center;
+      padding: 30px;
+    }
+
+    h1 {
+      font-family: 'Anton', sans-serif;
+      font-size: 3rem;
+      color: #ffcc00;
+      text-shadow: 2px 2px 10px #ff6600;
+      margin-bottom: 25px;
+    }
+
+    .fight {
+      background: linear-gradient(135deg, #1e1e1e, #2b2b2b);
+      margin: 25px auto;
+      padding: 20px;
+      border-radius: 15px;
+      width: 70%;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+      border: 2px solid #ffcc00;
+      transition: 0.3s;
+    }
+
+    .fight:hover {
+      transform: scale(1.02);
+      box-shadow: 0 0 20px rgba(255, 204, 0, 0.4);
+    }
+
+    strong {
+      font-size: 1.4rem;
+      font-family: 'Anton', sans-serif;
+      color: #ffcc00;
+      text-shadow: 0 0 5px #ff6600;
+    }
+
+    button {
+      background-color: #ff4141;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #ff7171;
+      transform: translateY(-2px);
+      box-shadow: 0 0 10px #ff7171;
+    }
+
+    .results {
+      background: linear-gradient(135deg, #2b2b2b, #1a1a1a);
+      border-radius: 15px;
+      padding: 20px;
+      margin: 20px auto;
+      width: 70%;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+      border-left: 5px solid #ffcc00;
+    }
+
+    .btn-toggle, .btn-reset, .btn-sound, .btn-music {
+      background-color: #00b894;
+      color: #fff;
+      border: none;
+      padding: 10px 25px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 10px;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .btn-toggle:hover, .btn-sound:hover, .btn-music:hover {
+      background-color: #55efc4;
+      transform: scale(1.05);
+    }
+
+    .btn-reset {
+      background-color: #0984e3;
+    }
+
+    .btn-reset:hover {
+      background-color: #74b9ff;
+      transform: scale(1.05);
+    }
+
+    .vs {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #ffcc00;
+      text-shadow: 0 0 5px #ff6600;
+    }
+
+    footer {
+      margin-top: 50px;
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+
+    /* Modal de apuestas */
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .modal-content {
+      background: #1e1e1e;
+      padding: 25px;
+      border-radius: 15px;
+      border: 2px solid #ffcc00;
+      width: 300px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(255, 204, 0, 0.4);
+      animation: aparecer 0.3s ease;
+    }
+
+    @keyframes aparecer {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-content input {
+      width: 80%;
+      padding: 8px;
+      margin-top: 10px;
+      border-radius: 5px;
+      border: none;
+      text-align: center;
+      font-size: 1rem;
+    }
+
+    .modal-content button {
+      margin-top: 15px;
+      width: 100px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>🥊 FUMADA DEL AÑO 🥊</h1>
+
+    <button class="btn-toggle" @click="togglePantalla">
+      {{ mostrarResultados ? 'Volver a votación' : 'Ver resultados' }}
+    </button>
+
+    <button class="btn-reset" @click="resetVotos">
+      Reiniciar votos
+    </button>
+
+    <button class="btn-sound" @click="toggleSonido">
+      {{ sonidoActivo ? '🔇 Sonido OFF' : '🔊 Sonido ON' }}
+    </button>
+
+    <button class="btn-music" @click="toggleMusica">
+      {{ musicaActiva ? '🎵 Pausar música' : '🎶 Reanudar música' }}
+    </button>
+
+    <!-- Pantalla 1: Votación -->
+    <div v-if="!mostrarResultados">
+      <div v-for="(pelea, index) in peleas" :key="index" class="fight">
+        <div>
+          <strong>{{ pelea.luchador1 }}</strong><br>
+          <button @click="abrirApuesta(index, 'luchador1')">Votar por {{ pelea.luchador1 }}</button>
+        </div>
+        <div class="vs">VS</div>
+        <div>
+          <strong>{{ pelea.luchador2 }}</strong><br>
+          <button @click="abrirApuesta(index, 'luchador2')">Votar por {{ pelea.luchador2 }}</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pantalla 2: Resultados -->
+    <div v-else>
+      <div v-for="(pelea, index) in peleas" :key="index" class="results">
+        <h3>{{ pelea.luchador1 }} vs {{ pelea.luchador2 }}</h3>
+        <p>{{ getPorcentaje(pelea.votos1, pelea.votos2).p1 }}% van por {{ pelea.luchador1 }} (💰 {{ pelea.apuesta1.toLocaleString('es-CO') }} COP)</p>
+        <p>{{ getPorcentaje(pelea.votos1, pelea.votos2).p2 }}% van por {{ pelea.luchador2 }} (💰 {{ pelea.apuesta2.toLocaleString('es-CO') }} COP)</p>
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <div v-if="mostrarModal" class="modal">
+      <div class="modal-content">
+        <h3>💰 Apuesta por {{ nombreLuchadorSeleccionado }}</h3>
+        <p>Ingresa tu apuesta en pesos colombianos:</p>
+        <input type="number" v-model.number="valorApuesta" placeholder="Ej: 5000">
+        <div>
+          <button @click="confirmarApuesta">Confirmar</button>
+          <button @click="cerrarModal">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <footer>Desarrollado por <strong>Juan Pablo Calderón Motta</strong> 🥊</footer>
+
+    <!-- Efectos de sonido -->
+    <audio id="SonidoVoto" src="SonidoVoto.mp3"></audio>
+    <audio id="SonidoApuesta" src="SonidoApuesta.mp3"></audio>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+
+    createApp({
+      data() {
+        return {
+          mostrarResultados: false,
+          sonidoActivo: true,
+          mostrarModal: false,
+          musicaActiva: false,
+          bgMusic: null,
+          indiceSeleccionado: null,
+          luchadorSeleccionado: '',
+          nombreLuchadorSeleccionado: '',
+          valorApuesta: null,
+          peleas: []
+        }
+      },
+      created() {
+        const datosGuardados = localStorage.getItem('peleas');
+        if (datosGuardados) {
+          this.peleas = JSON.parse(datosGuardados);
+        } else {
+          this.peleas = [
+            { luchador1: "Kenneth", luchador2: "Pato", votos1: 0, votos2: 0, apuesta1: 0, apuesta2: 0 },
+            { luchador1: "Mao", luchador2: "Royert", votos1: 0, votos2: 0, apuesta1: 0, apuesta2: 0 },
+            { luchador1: "Rincon", luchador2: "Paco", votos1: 0, votos2: 0, apuesta1: 0, apuesta2: 0 },
+            { luchador1: "Marga", luchador2: "Novia Zamudio", votos1: 0, votos2: 0, apuesta1: 0, apuesta2: 0 },
+            { luchador1: "Mottas", luchador2: "Arat", votos1: 0, votos2: 0, apuesta1: 0, apuesta2: 0 },
+            { luchador1: "Son", luchador2: "Shawn", votos1: 0, votos2: 0, apuesta1: 0, apuesta2: 0 },
+            { luchador1: "Mario", luchador2: "Zamudio", votos1: 0, votos2: 0, apuesta1: 0, apuesta2: 0 },
+            { luchador1: "Camilo", luchador2: "Juanito", votos1: 0, votos2: 0, apuesta1: 0, apuesta2: 0 },
+            { luchador1: "Jhon", luchador2: "Angel", votos1: 0, votos2: 0, apuesta1: 0, apuesta2: 0 },
+            { luchador1: "Jacobo", luchador2: "Samuel", votos1: 0, votos2: 0, apuesta1: 0, apuesta2: 0 }
+          ];
+        }
+      },
+      methods: {
+        reproducirSonido(id) {
+          if (this.sonidoActivo) {
+            const s = document.getElementById(id);
+            s.currentTime = 0;
+            s.play();
+          }
+        },
+        iniciarMusica() {
+          if (!this.bgMusic) {
+            this.bgMusic = new Audio('musica-fondo.mp3'); // 🔊 tu archivo
+            this.bgMusic.loop = true;
+            this.bgMusic.volume = 1;
+          }
+          this.bgMusic.play().catch(() => console.log("La música se reproducirá tras una interacción."));
+          this.musicaActiva = true;
+        },
+        pausarMusica() {
+          if (this.bgMusic) {
+            this.bgMusic.pause();
+            this.musicaActiva = false;
+          }
+        },
+        toggleMusica() {
+          this.musicaActiva ? this.pausarMusica() : this.iniciarMusica();
+        },
+        abrirApuesta(index, luchador) {
+          this.indiceSeleccionado = index;
+          this.luchadorSeleccionado = luchador;
+          this.nombreLuchadorSeleccionado = this.peleas[index][luchador];
+          this.valorApuesta = null;
+          this.mostrarModal = true;
+          this.reproducirSonido('SonidoVoto');
+          this.iniciarMusica(); // 🎶 empieza la música al interactuar
+        },
+        confirmarApuesta() {
+          if (!this.valorApuesta || this.valorApuesta <= 0) return alert("Ingresa una cantidad válida.");
+
+          const pelea = this.peleas[this.indiceSeleccionado];
+          if (this.luchadorSeleccionado === 'luchador1') {
+            pelea.votos1++;
+            pelea.apuesta1 += this.valorApuesta;
+          } else {
+            pelea.votos2++;
+            pelea.apuesta2 += this.valorApuesta;
+          }
+
+          this.reproducirSonido('SonidoApuesta');
+          localStorage.setItem('peleas', JSON.stringify(this.peleas));
+          this.mostrarModal = false;
+        },
+        cerrarModal() {
+          this.mostrarModal = false;
+        },
+        getPorcentaje(v1, v2) {
+          const total = v1 + v2;
+          if (total === 0) return { p1: 0, p2: 0 };
+          return {
+            p1: ((v1 / total) * 100).toFixed(1),
+            p2: ((v2 / total) * 100).toFixed(1)
+          };
+        },
+        togglePantalla() {
+          this.mostrarResultados = !this.mostrarResultados;
+        },
+        toggleSonido() {
+          this.sonidoActivo = !this.sonidoActivo;
+        },
+        resetVotos() {
+          if (confirm("¿Seguro que quieres reiniciar todos los votos y apuestas?")) {
+            localStorage.removeItem('peleas');
+            location.reload();
+          }
+        }
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
